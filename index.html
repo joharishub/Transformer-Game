@@ -4,7 +4,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Predict the Prompt! — Cyberpunk Kid Mode</title>
+<title>Predict the Prompt! — Cyberpunk Kid Mode (Text Logo)</title>
+<!-- Load newspaper/blackletter style + body font -->
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0a0a12;
@@ -14,8 +16,6 @@
     --accent: #ff2bd7;  /* neon magenta */
     --accent2: #00eaff; /* neon cyan */
     --border: #2a2a3f;
-    --bar1: rgba(255, 43, 215, 0.7);
-    --bar2: rgba(0, 234, 255, 0.7);
   }
   * { box-sizing: border-box; }
   body {
@@ -25,15 +25,50 @@
     background: radial-gradient(80vw 80vh at 70% -20%, #121223 0, var(--bg) 60%);
   }
   .wrap { max-width: 980px; margin: 24px auto 80px; padding: 16px; }
-  header { display:flex; align-items:center; justify-content:space-between; gap: 12px; margin-bottom: 16px; }
-  h1 { margin:0; font-size: clamp(22px, 3vw, 32px); letter-spacing: .3px; }
-  .glow { text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent2); }
+
+  /* TEXT LOGO */
+  .masthead {
+    font-family: "UnifrakturCook", serif;
+    text-align: center;
+    font-size: clamp(28px, 5vw, 54px);
+    line-height: 1.05;
+    letter-spacing: .5px;
+    margin: 8px 0 2px;
+    background: linear-gradient(180deg, var(--accent2), #b4ffff 40%, #47f6ff 70%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow:
+      0 0 12px rgba(0,234,255,.35),
+      0 0 28px rgba(0,234,255,.22);
+  }
+  .mast-sub {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 10px;
+    letter-spacing: .3px;
+  }
+
+  header { display:flex; flex-direction: column; align-items:center; gap: 10px; margin-bottom: 10px; }
+  h1 {
+    margin:0;
+    font-size: clamp(22px, 3vw, 32px);
+    letter-spacing: .3px;
+    text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent2);
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
   .card {
     background: linear-gradient(180deg, rgba(17,17,30,0.9), rgba(10,10,18,0.95));
     border: 1px solid var(--border);
     border-radius: 14px;
     box-shadow: 0 15px 50px rgba(0,0,0,.6), 0 0 30px rgba(0,234,255,.05);
     padding: clamp(16px, 2.5vw, 24px);
+    width: 100%;
   }
   .prompt { font-size: clamp(18px, 2.4vw, 24px); margin: 6px 0 10px; letter-spacing: .2px; }
   .subtitle { color: var(--muted); margin: 6px 0 14px; }
@@ -47,7 +82,7 @@
   .choice:hover { transform: translateY(-1px); box-shadow: 0 0 12px rgba(0,234,255,.12); }
   .choice input { display:none; }
   .choice.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(255,43,215,.25), inset 0 0 18px rgba(255,43,215,.08); }
-  .row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content: center; }
   .btn {
     background: linear-gradient(90deg, var(--accent), var(--accent2));
     color:#0a0a12; border:0; padding: 12px 16px; border-radius: 10px; font-weight:800; cursor:pointer;
@@ -66,7 +101,7 @@
   .panel { margin-top: 14px; border-top: 1px dashed var(--border); padding-top: 14px; }
   .bars { display:grid; grid-template-columns:1fr; gap:8px; margin-top:8px; }
   .bar { height: 30px; background:#0e0e20; border:1px solid var(--border); border-radius:8px; overflow:hidden; position:relative; }
-  .bar > div { height:100%; width:0%; background: linear-gradient(90deg, var(--bar1), var(--bar2)); transition: width .4s ease; }
+  .bar > div { height:100%; width:0%; background: linear-gradient(90deg, rgba(255,43,215,.7), rgba(0,234,255,.7)); transition: width .4s ease; }
   .bar label { position:absolute; left:10px; top:50%; transform: translateY(-50%); font-weight:700; color:#e9f7ff; text-shadow: 0 0 6px rgba(0,234,255,.4); }
   .score { font-size:14px; color: var(--muted); }
   .slider { display:flex; gap:12px; align-items:center; }
@@ -74,30 +109,30 @@
   .badge { font-size: 12px; font-weight: 800; color:#0ff; background:#151536; padding:4px 8px; border-radius: 999px; border:1px solid var(--border); }
   .kvs { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
   .small { font-size: 13px; color: var(--muted); }
-  a { color: var(--accent2); }
 </style>
 </head>
 <body>
   <div class="wrap">
-    
-<header style="flex-direction: column; align-items: center; text-align: center;">
-  <img src="A_digital_vector_graphic_logo_for_"The_Transformer.png" alt="The Transformer Times Logo" style="max-width: 280px; margin-bottom: 10px; filter: drop-shadow(0 0 8px var(--accent));">
-  <h1 class="glow">Predict the Prompt! <span class="pill">Kid Mode</span></h1>
-  <div class="row" style="justify-content: center; flex-wrap: wrap;">
-    <div class="slider">
-      <label for="temp"><strong>Randomness</strong></label>
-      <input id="temp" type="range" min="0" max="2" step="0.1" value="0.9">
-      <span id="tempVal">0.9</span>
-    </div>
-    <div class="slider">
-      <label for="weird"><strong>Weirdness</strong></label>
-      <input id="weird" type="range" min="0" max="1" step="0.05" value="0.25">
-      <span id="weirdVal">0.25</span>
-    </div>
-    <div class="score">Score: <span id="score">0</span></div>
-  </div>
-</header>
+    <!-- TEXT LOGO -->
+    <div class="masthead">The Transformer Times</div>
+    <div class="mast-sub">an AI mini‑newspaper of games & demos</div>
 
+    <header>
+      <h1>Predict the Prompt! <span class="pill">Kid Mode</span></h1>
+      <div class="row">
+        <div class="slider">
+          <label for="temp"><strong>Randomness</strong></label>
+          <input id="temp" type="range" min="0" max="2" step="0.1" value="0.9">
+          <span id="tempVal">0.9</span>
+        </div>
+        <div class="slider">
+          <label for="weird"><strong>Weirdness</strong></label>
+          <input id="weird" type="range" min="0" max="1" step="0.05" value="0.25">
+          <span id="weirdVal">0.25</span>
+        </div>
+        <div class="score">Score: <span id="score">0</span></div>
+      </div>
+    </header>
 
     <div class="card">
       <div class="kvs">
@@ -127,12 +162,12 @@
       <div><b>What the computer does:</b> It gives each word a score. The word with the biggest score usually wins.</div>
       <div><b>Randomness:</b> Low = safe picks. High = wild picks.</div>
       <div><b>Weirdness:</b> Adds extra chaos. Every 4th round is a <b>Wild Round</b> for bonus fun.</div>
-      <div>All offline. No internet or accounts needed.</div>
+      <div>All offline. No internet or accounts needed (web font loads online).</div>
     </div>
   </div>
 
 <script>
-// 15 prompts (same logic), simple words and jokes ok for kids
+// same 15 prompts
 const rounds = [
   { prompt: "The cat sat on the", options: ["mat", "roof", "keyboard", "explosion"], base:[0.72,0.12,0.10,0.06], continuation:"The cat sat on the <b>mat</b> and purred." },
   { prompt: "For breakfast, I usually drink a cup of", options: ["coffee","juice","marbles","water"], base:[0.42,0.28,0.02,0.28], continuation:"For breakfast, I usually drink a cup of <b>juice</b> or <b>water</b>." },
@@ -166,7 +201,6 @@ function shuffle(arr) {
   return arr;
 }
 
-// Add controlled noise to a base distribution to simulate "weirdness" / entropy.
 function addWeirdness(base, weird) {
   const n = base.length;
   const uniform = 1.0 / n;
