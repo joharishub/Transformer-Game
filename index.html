@@ -4,91 +4,115 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Predict the Prompt! — Offline + Randomness</title>
+<title>Predict the Prompt! — Cyberpunk Kid Mode</title>
 <style>
   :root {
-    --bg: #fbf8f2;
-    --card: #ffffff;
-    --text: #1d1d1f;
-    --muted: #6b7280;
-    --accent: #0f7bff;
-    --border: #ece7dd;
+    --bg: #0a0a12;
+    --card: #0f0f1a;
+    --text: #e6e6f0;
+    --muted: #a1a1b5;
+    --accent: #ff2bd7;  /* neon magenta */
+    --accent2: #00eaff; /* neon cyan */
+    --border: #2a2a3f;
+    --bar1: rgba(255, 43, 215, 0.7);
+    --bar2: rgba(0, 234, 255, 0.7);
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     color: var(--text);
-    background: radial-gradient(90vw 90vh at 70% -10%, #ffffff 0, var(--bg) 55%);
+    background: radial-gradient(80vw 80vh at 70% -20%, #121223 0, var(--bg) 60%);
   }
   .wrap { max-width: 980px; margin: 24px auto 80px; padding: 16px; }
   header { display:flex; align-items:center; justify-content:space-between; gap: 12px; margin-bottom: 16px; }
-  h1 { margin:0; font-size: clamp(22px, 3vw, 32px); letter-spacing: .2px; }
+  h1 { margin:0; font-size: clamp(22px, 3vw, 32px); letter-spacing: .3px; }
+  .glow { text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent2); }
   .card {
-    background: var(--card);
+    background: linear-gradient(180deg, rgba(17,17,30,0.9), rgba(10,10,18,0.95));
     border: 1px solid var(--border);
     border-radius: 14px;
-    box-shadow: 0 12px 35px rgba(0,0,0,.06);
+    box-shadow: 0 15px 50px rgba(0,0,0,.6), 0 0 30px rgba(0,234,255,.05);
     padding: clamp(16px, 2.5vw, 24px);
   }
   .prompt { font-size: clamp(18px, 2.4vw, 24px); margin: 6px 0 10px; letter-spacing: .2px; }
   .subtitle { color: var(--muted); margin: 6px 0 14px; }
   .choices { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 12px 0 18px; }
-  .choice { display:flex; align-items:center; justify-content:space-between; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background:#fcfbf8; cursor:pointer; user-select:none; transition: transform .05s ease, border-color .1s ease; }
-  .choice:hover { transform: translateY(-1px); }
+  .choice {
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
+    background: #111125; cursor:pointer; user-select:none;
+    transition: transform .05s ease, border-color .12s ease, box-shadow .12s ease;
+  }
+  .choice:hover { transform: translateY(-1px); box-shadow: 0 0 12px rgba(0,234,255,.12); }
   .choice input { display:none; }
-  .choice.selected { border-color: var(--accent); outline: 2px solid rgba(15,123,255,.2); }
+  .choice.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(255,43,215,.25), inset 0 0 18px rgba(255,43,215,.08); }
   .row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-  .btn { background: var(--text); color:white; border:0; padding: 12px 16px; border-radius: 10px; font-weight:600; cursor:pointer; }
-  .btn.secondary { background: #eef3ff; color:#0f3b8f; }
-  .btn:disabled { opacity:.5; cursor:not-allowed; }
-  .pill { padding:6px 10px; border-radius:999px; background:#eef3ff; color:#0f3b8f; font-size:12px; font-weight:700; }
+  .btn {
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    color:#0a0a12; border:0; padding: 12px 16px; border-radius: 10px; font-weight:800; cursor:pointer;
+    text-transform: uppercase; letter-spacing:.3px;
+    box-shadow: 0 8px 25px rgba(255,43,215,.25), 0 6px 20px rgba(0,234,255,.18);
+  }
+  .btn.secondary {
+    background: #13132a; color: var(--text); border:1px solid var(--border);
+    box-shadow: none; text-transform:none; letter-spacing:0;
+  }
+  .btn:disabled { opacity:.6; cursor:not-allowed; }
+  .pill {
+    padding:6px 10px; border-radius:999px; background: #151536; color: var(--accent2);
+    font-size:12px; font-weight:800; border:1px solid var(--border);
+  }
   .panel { margin-top: 14px; border-top: 1px dashed var(--border); padding-top: 14px; }
   .bars { display:grid; grid-template-columns:1fr; gap:8px; margin-top:8px; }
-  .bar { height: 28px; background:#f3efe7; border:1px solid var(--border); border-radius:8px; overflow:hidden; position:relative; }
-  .bar > div { height:100%; width:0%; background: linear-gradient(90deg, rgba(15,123,255,.25), rgba(15,123,255,.65)); transition: width .4s ease; }
-  .bar label { position:absolute; left:10px; top:50%; transform: translateY(-50%); font-weight:600; }
+  .bar { height: 30px; background:#0e0e20; border:1px solid var(--border); border-radius:8px; overflow:hidden; position:relative; }
+  .bar > div { height:100%; width:0%; background: linear-gradient(90deg, var(--bar1), var(--bar2)); transition: width .4s ease; }
+  .bar label { position:absolute; left:10px; top:50%; transform: translateY(-50%); font-weight:700; color:#e9f7ff; text-shadow: 0 0 6px rgba(0,234,255,.4); }
   .score { font-size:14px; color: var(--muted); }
   .slider { display:flex; gap:12px; align-items:center; }
-  .footer { margin-top:22px; display:grid; gap:10px; color:var(--muted); font-size:13px; }
-  .badge { font-size: 12px; font-weight: 700; color:#0f3b8f; background:#e9f0ff; padding:4px 8px; border-radius: 999px; }
+  .footer { margin-top:22px; display:grid; gap:8px; color:var(--muted); font-size:14px; }
+  .badge { font-size: 12px; font-weight: 800; color:#0ff; background:#151536; padding:4px 8px; border-radius: 999px; border:1px solid var(--border); }
   .kvs { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-  .small { font-size: 12px; color: var(--muted); }
+  .small { font-size: 13px; color: var(--muted); }
+  a { color: var(--accent2); }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <h1>Predict the Prompt! <span class="pill">Offline + Randomness</span></h1>
-      <div class="row">
-        <div class="slider">
-          <label for="temp"><strong>Temperature</strong></label>
-          <input id="temp" type="range" min="0" max="2" step="0.1" value="0.9">
-          <span id="tempVal">0.9</span>
-        </div>
-        <div class="slider">
-          <label for="weird"><strong>Weirdness</strong></label>
-          <input id="weird" type="range" min="0" max="1" step="0.05" value="0.25">
-          <span id="weirdVal">0.25</span>
-        </div>
-        <div class="score">Score: <span id="score">0</span></div>
-      </div>
-    </header>
+    
+<header style="flex-direction: column; align-items: center; text-align: center;">
+  <img src="A_digital_vector_graphic_logo_for_"The_Transformer.png" alt="The Transformer Times Logo" style="max-width: 280px; margin-bottom: 10px; filter: drop-shadow(0 0 8px var(--accent));">
+  <h1 class="glow">Predict the Prompt! <span class="pill">Kid Mode</span></h1>
+  <div class="row" style="justify-content: center; flex-wrap: wrap;">
+    <div class="slider">
+      <label for="temp"><strong>Randomness</strong></label>
+      <input id="temp" type="range" min="0" max="2" step="0.1" value="0.9">
+      <span id="tempVal">0.9</span>
+    </div>
+    <div class="slider">
+      <label for="weird"><strong>Weirdness</strong></label>
+      <input id="weird" type="range" min="0" max="1" step="0.05" value="0.25">
+      <span id="weirdVal">0.25</span>
+    </div>
+    <div class="score">Score: <span id="score">0</span></div>
+  </div>
+</header>
+
 
     <div class="card">
       <div class="kvs">
         <div class="subtitle">Round <span id="round">1</span> of <span id="total">15</span></div>
-        <div id="modeBadge" class="badge">Standard</div>
+        <div id="modeBadge" class="badge">Normal</div>
       </div>
       <div id="prompt" class="prompt">Loading…</div>
 
       <div id="choices" class="choices"></div>
 
       <div class="row">
-        <button id="submit" class="btn" disabled>Submit</button>
+        <button id="submit" class="btn" disabled>Lock In</button>
         <button id="next" class="btn" style="display:none;">Next</button>
         <button id="shuffle" class="btn secondary">Shuffle Prompts</button>
-        <span class="small">Tip: crank up <b>Temperature</b> or <b>Weirdness</b> to make choices less obvious.</span>
+        <span class="small">Tip: Turn up <b>Randomness</b> or <b>Weirdness</b> to make it trickier.</span>
       </div>
 
       <div id="reveal" class="panel" style="display:none;">
@@ -99,24 +123,27 @@
     </div>
 
     <div class="footer">
-      <div>How it works: a language model assigns probabilities to each possible next token. Your job: pick the one you think the model would select. <b>Temperature</b> increases randomness by flattening or sharpening the distribution. <b>Weirdness</b> injects additional noise before sampling (mimics high-entropy contexts).</div>
-      <div>Completely offline, no API. Add your own prompts by editing the <code>rounds</code> array inside the file.</div>
+      <div><b>What you do:</b> Read the sentence. Guess the next word.</div>
+      <div><b>What the computer does:</b> It gives each word a score. The word with the biggest score usually wins.</div>
+      <div><b>Randomness:</b> Low = safe picks. High = wild picks.</div>
+      <div><b>Weirdness:</b> Adds extra chaos. Every 4th round is a <b>Wild Round</b> for bonus fun.</div>
+      <div>All offline. No internet or accounts needed.</div>
     </div>
   </div>
 
 <script>
-// 15 prompts, each with options, base distribution, and a default continuation
+// 15 prompts (same logic), simple words and jokes ok for kids
 const rounds = [
-  { prompt: "The cat sat on the", options: ["mat", "roof", "keyboard", "explosion"], base:[0.72,0.12,0.10,0.06], continuation:"The cat sat on the <b>mat</b> and purred contentedly." },
-  { prompt: "For breakfast, I usually drink a cup of", options: ["coffee","justice","marbles","water"], base:[0.58,0.05,0.02,0.35], continuation:"For breakfast, I usually drink a cup of <b>coffee</b>." },
-  { prompt: "In winter, the roads can be", options: ["icy","philosophical","transparent","noisy"], base:[0.64,0.03,0.06,0.27], continuation:"In winter, the roads can be <b>icy</b>." },
+  { prompt: "The cat sat on the", options: ["mat", "roof", "keyboard", "explosion"], base:[0.72,0.12,0.10,0.06], continuation:"The cat sat on the <b>mat</b> and purred." },
+  { prompt: "For breakfast, I usually drink a cup of", options: ["coffee","juice","marbles","water"], base:[0.42,0.28,0.02,0.28], continuation:"For breakfast, I usually drink a cup of <b>juice</b> or <b>water</b>." },
+  { prompt: "In winter, the roads can be", options: ["icy","bouncy","invisible","noisy"], base:[0.64,0.06,0.06,0.24], continuation:"In winter, the roads can be <b>icy</b>." },
   { prompt: "The capital of France is", options: ["Paris","Lyon","Berlin","Croissant"], base:[0.80,0.10,0.08,0.02], continuation:"The capital of France is <b>Paris</b>." },
   { prompt: "She saved her work by pressing", options:["Ctrl+S","Delete","Spacebar","Alt+Tab"], base:[0.60,0.12,0.10,0.18], continuation:"She saved her work by pressing <b>Ctrl+S</b>." },
   { prompt: "On a clear night, you can see the", options:["stars","internet","microwave","taxes"], base:[0.66,0.04,0.06,0.24], continuation:"On a clear night, you can see the <b>stars</b>." },
   { prompt: "A common pet is a", options:["dog","iguana","rock","spaceship"], base:[0.62,0.18,0.06,0.14], continuation:"A common pet is a <b>dog</b>." },
-  { prompt: "When it rains, I carry a", options:["umbrella","cactus","saxophone","ladder"], base:[0.73,0.05,0.09,0.13], continuation:"When it rains, I carry a <b>umbrella</b>." },
+  { prompt: "When it rains, I carry a", options:["umbrella","cactus","saxophone","ladder"], base:[0.73,0.05,0.09,0.13], continuation:"When it rains, I carry an <b>umbrella</b>." },
   { prompt: "To boil water faster, put a lid on the", options:["pot","floor","window","book"], base:[0.69,0.06,0.15,0.10], continuation:"To boil water faster, put a lid on the <b>pot</b>." },
-  { prompt: "The opposite of hot is", options:["cold","lukewarm","spicy","north"], base:[0.78,0.08,0.11,0.03], continuation:"The opposite of hot is <b>cold</b>." },
+  { prompt: "The opposite of hot is", options:["cold","warm","spicy","north"], base:[0.76,0.12,0.09,0.03], continuation:"The opposite of hot is <b>cold</b>." },
   { prompt: "Birds build their", options:["nests","invoices","apps","sandwiches"], base:[0.67,0.05,0.12,0.16], continuation:"Birds build their <b>nests</b>." },
   { prompt: "My phone ran out of", options:["battery","sand","gravity","fame"], base:[0.71,0.06,0.08,0.15], continuation:"My phone ran out of <b>battery</b>." },
   { prompt: "The fastest land animal is the", options:["cheetah","snail","ostrich","meme"], base:[0.76,0.03,0.18,0.03], continuation:"The fastest land animal is the <b>cheetah</b>." },
@@ -141,11 +168,9 @@ function shuffle(arr) {
 
 // Add controlled noise to a base distribution to simulate "weirdness" / entropy.
 function addWeirdness(base, weird) {
-  // Move toward uniform with noise
   const n = base.length;
   const uniform = 1.0 / n;
   const noisy = base.map(p => (1 - weird) * p + weird * uniform);
-  // Tiny random jitter
   const jitter = noisy.map(p => Math.max(1e-9, p + (Math.random() - 0.5) * weird * 0.1));
   const sum = jitter.reduce((a,b)=>a+b,0);
   return jitter.map(p => p / sum);
@@ -170,12 +195,10 @@ function renderRound() {
   const temp = parseFloat(document.getElementById('temp').value);
   const weird = parseFloat(document.getElementById('weird').value);
 
-  // Every 4th round becomes a "Wild" round (extra weirdness)
   const isWild = ((currIndex + 1) % 4 === 0);
   const appliedWeird = isWild ? Math.min(1, weird + 0.4) : weird;
-  document.getElementById('modeBadge').textContent = isWild ? "Wild Round" : "Standard";
+  document.getElementById('modeBadge').textContent = isWild ? "Wild Round" : "Normal";
 
-  // Apply weirdness then temperature scaling
   const noisy = addWeirdness(r.base, appliedWeird);
   const probs = softmaxWithTemp(noisy, temp);
 
@@ -191,7 +214,7 @@ function renderRound() {
   r.options.forEach((opt, j) => {
     const label = document.createElement('label');
     label.className = 'choice';
-    label.innerHTML = `<span>${opt}</span><span style="font-size:12px;color:#888;">tap to select</span>`;
+    label.innerHTML = `<span>${opt}</span><span style="font-size:12px;color:${'var(--muted)'};">tap to choose</span>`;
     const input = document.createElement('input');
     input.type = 'radio';
     input.name = 'opt';
@@ -214,7 +237,6 @@ function reveal(selectedIdx) {
   const correct = selectedIdx === bestIdx;
   const gained = Math.round(100 * probs[selectedIdx]);
 
-  // Wild rounds give a small multiplier to reward risk-taking
   const wildBonus = r.isWild ? 1.2 : 1.0;
   score += (correct ? Math.max(gained, 50) : Math.max(5, Math.round(gained*0.4))) * wildBonus;
 
@@ -224,8 +246,8 @@ function reveal(selectedIdx) {
 
   const outcome = document.getElementById('outcome');
   outcome.innerHTML = correct
-    ? `✅ Perfect prediction! You picked the top token.`
-    : `🧠 Nice try. Top token was <b>${r.options[bestIdx]}</b>.`;
+    ? `✅ You guessed it! That was the top word.`
+    : `🤖 Almost! The top word was <b>${r.options[bestIdx]}</b>.`;
 
   const cont = document.getElementById('continuation');
   cont.innerHTML = r.continuation;
@@ -238,7 +260,7 @@ function reveal(selectedIdx) {
     .forEach(({name, p})=>{
       const row = document.createElement('div');
       row.className = 'bar';
-      row.innerHTML = `<label>${name} (${(p*100).toFixed(0)}%)</label><div></div>`;
+      row.innerHTML = `<label>${name} — ${(p*100).toFixed(0)}%</label><div></div>`;
       bars.appendChild(row);
       setTimeout(()=>{
         row.querySelector('div').style.width = `${(p*100).toFixed(0)}%`;
@@ -275,11 +297,7 @@ weirdInput.addEventListener('input', ()=>{
   renderRound();
 });
 
-// init
-function initOrder() {
-  order = shuffle(order);
-}
-initOrder();
+order = shuffle(order);
 renderRound();
 </script>
 </body>
