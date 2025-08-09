@@ -4,8 +4,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Predict the Prompt! — Cyberpunk Kid Mode (Text Logo)</title>
-<!-- Load newspaper/blackletter style + body font -->
+<title>Predict the Prompt — Thought Playback</title>
 <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -16,6 +15,7 @@
     --accent: #ff2bd7;  /* neon magenta */
     --accent2: #00eaff; /* neon cyan */
     --border: #2a2a3f;
+    --thought: #14142a;
   }
   * { box-sizing: border-box; }
   body {
@@ -24,9 +24,8 @@
     color: var(--text);
     background: radial-gradient(80vw 80vh at 70% -20%, #121223 0, var(--bg) 60%);
   }
-  .wrap { max-width: 980px; margin: 24px auto 80px; padding: 16px; }
-
-  /* TEXT LOGO */
+  .wrap { max-width: 1000px; margin: 24px auto 80px; padding: 16px; }
+  
   .masthead {
     font-family: "UnifrakturCook", serif;
     text-align: center;
@@ -34,34 +33,28 @@
     line-height: 1.05;
     letter-spacing: .5px;
     margin: 8px 0 2px;
-    background: linear-gradient(180deg, var(--accent2), #b4ffff 40%, #47f6ff 70%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow:
-      0 0 12px rgba(0,234,255,.35),
-      0 0 28px rgba(0,234,255,.22);
-  }
-  .mast-sub {
-    text-align: center;
-    color: var(--muted);
-    font-size: 13px;
-    margin-bottom: 10px;
-    letter-spacing: .3px;
+    color: var(--accent2);
+    text-shadow: 0 0 8px rgba(0,234,255,.7), 0 0 18px rgba(0,234,255,.5), 0 0 30px rgba(0,234,255,.4);
   }
 
+  .mast-sub { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 10px; }
   header { display:flex; flex-direction: column; align-items:center; gap: 10px; margin-bottom: 10px; }
+  
   h1 {
     margin:0;
     font-size: clamp(22px, 3vw, 32px);
     letter-spacing: .3px;
-    text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent2);
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--accent);
+    text-shadow: 0 0 8px rgba(255,43,215,.75), 0 0 18px rgba(255,43,215,.45);
   }
 
+  .row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:center; }
+  .slider { display:flex; gap:12px; align-items:center; }
+  .score { font-size:14px; color: var(--muted); }
+  .pill {
+    padding:6px 10px; border-radius:999px; background:#151536; color:var(--accent2);
+    font-size:12px; font-weight:800; border:1px solid var(--border);
+  }
   .card {
     background: linear-gradient(180deg, rgba(17,17,30,0.9), rgba(10,10,18,0.95));
     border: 1px solid var(--border);
@@ -80,45 +73,115 @@
     transition: transform .05s ease, border-color .12s ease, box-shadow .12s ease;
   }
   .choice:hover { transform: translateY(-1px); box-shadow: 0 0 12px rgba(0,234,255,.12); }
-  .choice input { display:none; }
   .choice.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(255,43,215,.25), inset 0 0 18px rgba(255,43,215,.08); }
-  .row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content: center; }
+
   .btn {
     background: linear-gradient(90deg, var(--accent), var(--accent2));
     color:#0a0a12; border:0; padding: 12px 16px; border-radius: 10px; font-weight:800; cursor:pointer;
     text-transform: uppercase; letter-spacing:.3px;
     box-shadow: 0 8px 25px rgba(255,43,215,.25), 0 6px 20px rgba(0,234,255,.18);
   }
-  .btn.secondary {
-    background: #13132a; color: var(--text); border:1px solid var(--border);
-    box-shadow: none; text-transform:none; letter-spacing:0;
-  }
+  .btn.secondary { background:#13132a; color:var(--text); border:1px solid var(--border); box-shadow:none; text-transform:none; }
   .btn:disabled { opacity:.6; cursor:not-allowed; }
-  .pill {
-    padding:6px 10px; border-radius:999px; background: #151536; color: var(--accent2);
-    font-size:12px; font-weight:800; border:1px solid var(--border);
-  }
-  .panel { margin-top: 14px; border-top: 1px dashed var(--border); padding-top: 14px; }
+
+  .panel { margin-top: 16px; border-top: 1px dashed var(--border); padding-top: 16px; }
   .bars { display:grid; grid-template-columns:1fr; gap:8px; margin-top:8px; }
   .bar { height: 30px; background:#0e0e20; border:1px solid var(--border); border-radius:8px; overflow:hidden; position:relative; }
-  .bar > div { height:100%; width:0%; background: linear-gradient(90deg, rgba(255,43,215,.7), rgba(0,234,255,.7)); transition: width .4s ease; }
+  .bar > div { height:100%; width:0%; background: linear-gradient(90deg, rgba(255,43,215,.7), rgba(0,234,255,.7)); transition: width .6s ease; }
   .bar label { position:absolute; left:10px; top:50%; transform: translateY(-50%); font-weight:700; color:#e9f7ff; text-shadow: 0 0 6px rgba(0,234,255,.4); }
-  .score { font-size:14px; color: var(--muted); }
-  .slider { display:flex; gap:12px; align-items:center; }
-  .footer { margin-top:22px; display:grid; gap:8px; color:var(--muted); font-size:14px; }
-  .badge { font-size: 12px; font-weight: 800; color:#0ff; background:#151536; padding:4px 8px; border-radius: 999px; border:1px solid var(--border); }
-  .kvs { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-  .small { font-size: 13px; color: var(--muted); }
+
+  /* Thought Playback */
+  .timeline {
+    display:grid; grid-template-columns: 1fr; gap:10px; margin-top: 10px;
+  }
+  .step {
+    background: var(--thought);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display:flex; gap:12px; align-items:flex-start;
+    position: relative;
+  }
+  .step:before {
+    content: attr(data-step);
+    font-weight: 800;
+    color: var(--accent2);
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 12px;
+  }
+  .dots {
+    margin-left: auto;
+    display:flex; gap:6px; align-items:center;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--accent2);
+    opacity: .2; animation: blink 1.2s infinite ease-in-out;
+  }
+  .dot:nth-child(2){ animation-delay:.2s;}
+  .dot:nth-child(3){ animation-delay:.4s;}
+  @keyframes blink {
+    0%, 100% { opacity:.2; transform: translateY(0); }
+    50% { opacity:1; transform: translateY(-2px); }
+  }
+  .step.done .dot { opacity:.15; animation: none; }
+  .step.done:after {
+    content: "✔";
+    position:absolute; right:10px; top:8px; color: var(--accent); font-weight: 800;
+  }
+
+  .thought-bubbles { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .bubble {
+    background:#121233; border:1px solid var(--border); border-radius: 999px; padding:6px 10px; font-size: 12px;
+    box-shadow: 0 0 8px rgba(0,234,255,.08);
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 120px;
+    height: 6px;
+    border-radius: 5px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 2px solid var(--accent2);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 2px solid var(--accent2);
+  }
+
+  input[type=range] {
+    box-shadow: 0 0 10px rgba(255,43,215,0.6), 0 0 20px rgba(0,234,255,0.5);
+  }
+  input[type=range]::-webkit-slider-thumb {
+    box-shadow: 0 0 8px rgba(0,234,255,0.9), 0 0 14px rgba(255,43,215,0.9);
+  }
+  input[type=range]::-moz-range-thumb {
+    box-shadow: 0 0 8px rgba(0,234,255,0.9), 0 0 14px rgba(255,43,215,0.9);
+  }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <!-- TEXT LOGO -->
     <div class="masthead">The Transformer Times</div>
-    <div class="mast-sub">A mini‑newspaper of AI games & demos</div>
+    <div class="mast-sub">an AI mini-newspaper of games & demos</div>
 
     <header>
-      <h1>Predict the Prompt! <span class="pill">Kid Mode</span></h1>
+      <h1>Predict the Prompt <span class="pill">+ Thought Playback</span></h1>
       <div class="row">
         <div class="slider">
           <label for="temp"><strong>Randomness</strong></label>
@@ -135,10 +198,7 @@
     </header>
 
     <div class="card">
-      <div class="kvs">
-        <div class="subtitle">Round <span id="round">1</span> of <span id="total">15</span></div>
-        <div id="modeBadge" class="badge">Normal</div>
-      </div>
+      <div class="subtitle">Round <span id="round">1</span> of <span id="total">15</span></div>
       <div id="prompt" class="prompt">Loading…</div>
 
       <div id="choices" class="choices"></div>
@@ -146,28 +206,28 @@
       <div class="row">
         <button id="submit" class="btn" disabled>Lock In</button>
         <button id="next" class="btn" style="display:none;">Next</button>
-        <button id="shuffle" class="btn secondary">Shuffle Prompts</button>
-        <span class="small">Tip: Turn up <b>Randomness</b> or <b>Weirdness</b> to make it trickier.</span>
       </div>
 
       <div id="reveal" class="panel" style="display:none;">
         <div id="outcome" class="subtitle"></div>
-        <div id="continuation"></div>
+        <div class="timeline" id="timeline">
+          <!-- Steps injected here -->
+        </div>
         <div class="bars" id="bars"></div>
       </div>
     </div>
 
-    <div class="footer">
-      <div><b>What you do:</b> Read the sentence. Guess the next word.</div>
-      <div><b>What the computer does:</b> It gives each word a score. The word with the biggest score usually wins.</div>
-      <div><b>Randomness:</b> Low = safe picks. High = wild picks.</div>
-      <div><b>Weirdness:</b> Adds extra chaos. Every 4th round is a <b>Wild Round</b> for bonus fun.</div>
-      <div>All offline. No internet or accounts needed (web font loads online).</div>
+    <div class="panel" style="margin-top:16px;">
+      <div class="subtitle"><b>What you're seeing:</b></div>
+      <ul style="margin:8px 0 0 18px; color:var(--muted); line-height:1.65;">
+        <li><b>Step 1 — Read:</b> Model reads the sentence and turns it into numbers.</li>
+        <li><b>Step 2 — Score:</b> It gives each possible next word a score.</li>
+        <li><b>Step 3 — Pick:</b> With Randomness & Weirdness, it picks one word.</li>
+      </ul>
     </div>
   </div>
 
 <script>
-// same 15 prompts
 const rounds = [
   { prompt: "The cat sat on the", options: ["mat", "roof", "keyboard", "explosion"], base:[0.72,0.12,0.10,0.06], continuation:"The cat sat on the <b>mat</b> and purred." },
   { prompt: "For breakfast, I usually drink a cup of", options: ["coffee","juice","marbles","water"], base:[0.42,0.28,0.02,0.28], continuation:"For breakfast, I usually drink a cup of <b>juice</b> or <b>water</b>." },
@@ -189,7 +249,6 @@ const rounds = [
 let order = [...Array(rounds.length).keys()];
 let currIndex = 0;
 let score = 0;
-
 const totalRounds = rounds.length;
 document.getElementById('total').textContent = totalRounds;
 
@@ -209,7 +268,6 @@ function addWeirdness(base, weird) {
   const sum = jitter.reduce((a,b)=>a+b,0);
   return jitter.map(p => p / sum);
 }
-
 function softmaxWithTemp(base, temp) {
   const eps = 1e-12;
   const logp = base.map(p => Math.log(p + eps));
@@ -231,7 +289,6 @@ function renderRound() {
 
   const isWild = ((currIndex + 1) % 4 === 0);
   const appliedWeird = isWild ? Math.min(1, weird + 0.4) : weird;
-  document.getElementById('modeBadge').textContent = isWild ? "Wild Round" : "Normal";
 
   const noisy = addWeirdness(r.base, appliedWeird);
   const probs = softmaxWithTemp(noisy, temp);
@@ -263,6 +320,46 @@ function renderRound() {
   });
 }
 
+function playbackSteps(tokens, probs, selectedIdx, doneCb) {
+  const timeline = document.getElementById('timeline');
+  timeline.innerHTML = '';
+
+  // Step 1
+  const s1 = document.createElement('div');
+  s1.className = 'step';
+  s1.setAttribute('data-step', '1  Read');
+  s1.innerHTML = `<div>Model reads the sentence and turns it into numbers.</div>
+    <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  timeline.appendChild(s1);
+
+  // Step 2
+  const s2 = document.createElement('div');
+  s2.className = 'step';
+  s2.setAttribute('data-step', '2  Score');
+  const top3 = tokens.map((t,i)=>({t, p: probs[i]})).sort((a,b)=>b.p-a.p).slice(0,3);
+  s2.innerHTML = `<div>The model scores each next word. Top ideas:</div>`;
+  const bubbles = document.createElement('div'); bubbles.className='thought-bubbles';
+  top3.forEach(({t,p})=>{
+    const b = document.createElement('div'); b.className='bubble'; b.textContent = `${t} (${(p*100).toFixed(0)}%)`; bubbles.appendChild(b);
+  });
+  s2.appendChild(bubbles);
+  s2.innerHTML += `<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  timeline.appendChild(s2);
+
+  // Step 3
+  const s3 = document.createElement('div');
+  s3.className = 'step';
+  s3.setAttribute('data-step', '3  Pick');
+  s3.innerHTML = `<div>With Randomness & Weirdness, it picks one word.</div>
+    <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  timeline.appendChild(s3);
+
+  // Animate steps
+  setTimeout(()=>{ s1.classList.add('done'); }, 700);
+  setTimeout(()=>{ s2.classList.add('done'); }, 1500);
+  setTimeout(()=>{ s3.classList.add('done'); doneCb && doneCb(); }, 2300);
+}
+
 function reveal(selectedIdx) {
   const i = order[currIndex];
   const r = rounds[i];
@@ -270,36 +367,33 @@ function reveal(selectedIdx) {
   const bestIdx = probs.indexOf(Math.max(...probs));
   const correct = selectedIdx === bestIdx;
   const gained = Math.round(100 * probs[selectedIdx]);
-
   const wildBonus = r.isWild ? 1.2 : 1.0;
   score += (correct ? Math.max(gained, 50) : Math.max(5, Math.round(gained*0.4))) * wildBonus;
 
   document.getElementById('score').textContent = Math.round(score);
   document.getElementById('reveal').style.display = 'block';
-  document.getElementById('next').style.display = 'inline-block';
 
   const outcome = document.getElementById('outcome');
   outcome.innerHTML = correct
     ? `✅ You guessed it! That was the top word.`
     : `🤖 Almost! The top word was <b>${r.options[bestIdx]}</b>.`;
 
-  const cont = document.getElementById('continuation');
-  cont.innerHTML = r.continuation;
-
-  const bars = document.getElementById('bars');
-  bars.innerHTML = "";
-  r.options
-    .map((name, j)=>({name, p: probs[j]}))
-    .sort((a,b)=>b.p - a.p)
-    .forEach(({name, p})=>{
-      const row = document.createElement('div');
-      row.className = 'bar';
-      row.innerHTML = `<label>${name} — ${(p*100).toFixed(0)}%</label><div></div>`;
-      bars.appendChild(row);
-      setTimeout(()=>{
-        row.querySelector('div').style.width = `${(p*100).toFixed(0)}%`;
-      }, 50);
-    });
+  // Thought Playback first, then draw bars
+  playbackSteps(r.options, probs, selectedIdx, () => {
+    const bars = document.getElementById('bars');
+    bars.innerHTML = "";
+    r.options
+      .map((name, j)=>({name, p: probs[j]}))
+      .sort((a,b)=>b.p - a.p)
+      .forEach(({name, p})=>{
+        const row = document.createElement('div');
+        row.className = 'bar';
+        row.innerHTML = `<label>${name} — ${(p*100).toFixed(0)}%</label><div></div>`;
+        bars.appendChild(row);
+        setTimeout(()=>{ row.querySelector('div').style.width = `${(p*100).toFixed(0)}%`; }, 100);
+      });
+    document.getElementById('next').style.display = 'inline-block';
+  });
 }
 
 document.getElementById('submit').addEventListener('click', ()=>{
@@ -310,11 +404,6 @@ document.getElementById('submit').addEventListener('click', ()=>{
 });
 document.getElementById('next').addEventListener('click', ()=>{
   currIndex = (currIndex + 1) % order.length;
-  renderRound();
-});
-document.getElementById('shuffle').addEventListener('click', ()=>{
-  order = shuffle(order);
-  currIndex = 0;
   renderRound();
 });
 
@@ -332,6 +421,7 @@ weirdInput.addEventListener('input', ()=>{
 });
 
 order = shuffle(order);
+document.getElementById('total').textContent = rounds.length;
 renderRound();
 </script>
 </body>
