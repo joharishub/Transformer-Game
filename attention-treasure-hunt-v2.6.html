@@ -1,0 +1,268 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Transformer Times — Attention Treasure Hunt (v2.6)</title>
+<style>
+  :root{ --bg:#0a0a12; --card:#0f0f1a; --text:#e6e6f0; --muted:#a1a1b5; --border:#2a2a3f; --mag:#ff2bd7; --cyn:#00eaff; --good:#00d68f; --warn:#ffd24a; }
+  *{box-sizing:border-box}
+  body{ margin:0; color:var(--text); background: radial-gradient(90vw 90vh at 70% -15%, #151528 0, var(--bg) 60%);
+        font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"; }
+  .wrap{max-width:1100px;margin:24px auto 90px;padding:16px}
+  .masthead{ font-family: Georgia, "Times New Roman", Times, serif; text-align:center; font-weight:700;
+             font-size: clamp(28px,6vw,54px); line-height:1.05; letter-spacing:.3px; margin:6px 0 2px;
+             color: var(--cyn); text-shadow: 0 0 8px rgba(0,234,255,.7), 0 0 18px rgba(0,234,255,.45); }
+  h1{ margin:0; font-size: clamp(20px,3.2vw,30px); color: var(--mag);
+      text-align:center; text-shadow: 0 0 8px rgba(255,43,215,.75), 0 0 18px rgba(255,43,215,.45); }
+  .card{ background: linear-gradient(180deg, rgba(17,17,30,.92), rgba(10,10,18,.96)); border:1px solid var(--border);
+         border-radius:14px; box-shadow: 0 15px 50px rgba(0,0,0,.6), 0 0 26px rgba(0,234,255,.06); padding: clamp(16px,2.6vw,24px); }
+  .muted{color:var(--muted)}
+  .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .pill{padding:6px 10px;border-radius:999px;background:#151536;color:var(--cyn);font-weight:800;font-size:12px;border:1px solid var(--border)}
+  .passage{display:flex;flex-wrap:wrap;gap:8px;align-items:center; margin: 12px 0 8px;}
+  .token{ padding:6px 8px; border:1px solid var(--border); border-radius:8px; background:#111125; cursor:pointer; user-select:none;
+          transition:transform .05s ease, box-shadow .12s ease, border-color .12s ease; position:relative; line-height:1.4; }
+  .token:hover{transform: translateY(-1px); box-shadow:0 0 12px rgba(0,234,255,.12)}
+  .token[data-att="0"]{opacity:.85}
+  .token[data-att="1"]{border-color:var(--cyn); box-shadow: 0 0 0 2px rgba(0,234,255,.25), inset 0 0 16px rgba(0,234,255,.08);}
+  .token[data-att="2"]{border-color:var(--mag); box-shadow: 0 0 0 2px rgba(255,43,215,.25), inset 0 0 18px rgba(255,43,215,.1);}
+  .token .idx{ display:none; position:absolute; top:-12px; left:50%; transform:translateX(-50%); font-size:10px; color:var(--muted); }
+  body.debug .token .idx{ display:block; }
+
+  .controls{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:center;margin:10px 0}
+  .btn{ background: linear-gradient(90deg, var(--mag), var(--cyn)); color:#0a0a12; border:0; padding:10px 14px; border-radius:10px; font-weight:800; cursor:pointer;
+        text-transform:uppercase; letter-spacing:.3px; box-shadow: 0 8px 25px rgba(255,43,215,.25), 0 6px 20px rgba(0,234,255,.18); }
+  .btn.secondary{background:#13132a;color:var(--text);border:1px solid var(--border);box-shadow:none;text-transform:none}
+  .score{font-size:14px;color:var(--muted)}
+
+  .meter{height:22px;background:#0e0e20;border:1px solid var(--border);border-radius:999px;overflow:hidden;position:relative}
+  .meter>div{height:100%;width:0%;background: linear-gradient(90deg, var(--good), var(--cyn)); transition: width .4s ease}
+  .meter label{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-weight:700;color:#e9f7ff;text-shadow:0 0 6px rgba(0,234,255,.4); font-size:12px}
+
+  .answer{margin-top:10px; font-size:14px; color:var(--muted)}
+  .highlight{background:rgba(0,234,255,.12); border-bottom:2px solid var(--cyn); border-radius:6px; padding:1px 4px}
+
+  /* Distractor highlight */
+  .distractor{ background: rgba(255,210,74,.16); border-bottom:2px solid var(--warn); border-radius:6px; }
+  @keyframes pulseY {
+    0% { box-shadow: 0 0 0 rgba(255,210,74,0.0); }
+    50% { box-shadow: 0 0 18px rgba(255,210,74,0.6); }
+    100%{ box-shadow: 0 0 0 rgba(255,210,74,0.0); }
+  }
+  .distractor.pulse { animation: pulseY 1.4s ease-in-out 2; }
+
+  .key{display:flex; gap:12px; justify-content:center; margin-top:6px; font-size:12px; color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .cyn{background:var(--cyn)} .mag{background:var(--mag)}
+
+  /* Vector preview (two rows of tiny cells) */
+  .vectors{margin-top:10px}
+  .vecrow{display:flex; gap:6px; align-items:center; font-size:12px; color:var(--muted); margin:6px 0 2px;}
+  .vecstrip{flex:1; display:flex; height:12px; border:1px solid var(--border); border-radius:6px; overflow:hidden; background:#0e0e20}
+  .cell{ flex:1; }
+  .cell.user{ background: linear-gradient(180deg, rgba(255,43,215,0), rgba(0,234,255,0)); }
+  .cell.ideal{ background: linear-gradient(180deg, rgba(0,234,255,0), rgba(255,43,215,0)); }
+
+  .version{margin-top:12px;text-align:center;color:#7ea; font-size:12px}
+  .err{color:#ffb8b8; font-size:12px; margin-top:8px; white-space:pre-wrap}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="masthead">The Transformer Times</div>
+    <h1>Attention Treasure Hunt <span class="pill">Find the Answer with Focus</span></h1>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between;gap:8px;align-items:center;">
+        <div class="muted"><b>Question:</b> <span id="question">Loading…</span></div>
+        <label class="muted" style="font-size:12px;display:flex;align-items:center;gap:6px;">
+          <input type="checkbox" id="debugToggle"> Show token indexes
+        </label>
+      </div>
+      <div class="muted">Click words to give them attention points (0 → 1 → 2). You have <span class="pill" id="pts">12</span> points.</div>
+
+      <div id="passage" class="passage" role="group" aria-label="Passage tokens"></div>
+
+      <div class="key" style="text-align:center;">
+        <span class="dot cyn" style="vertical-align:middle;margin-right:6px;"></span>
+        <span style="margin-right:16px;">lighter focus</span>
+        <span class="dot mag" style="vertical-align:middle;margin-right:6px;"></span>
+        <span>strong focus</span>
+      </div>
+
+      <div style="margin:10px 0;">
+        <div class="meter"><label>Signal Strength (normalized cosine)</label><div id="meterFill"></div></div>
+      </div>
+
+      <!-- Vector preview -->
+      <div class="vectors">
+        <div class="vecrow"><span style="width:130px;">Your attention</span><div id="vecUser" class="vecstrip"></div></div>
+        <div class="vecrow"><span style="width:130px;">Ideal attention</span><div id="vecIdeal" class="vecstrip"></div></div>
+      </div>
+
+      <div class="controls">
+        <button id="auto" class="btn secondary" title="Suggest attention">Auto-Attend</button>
+        <button id="reveal" class="btn">Reveal</button>
+        <button id="next" class="btn secondary">Next Passage</button>
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="pill" id="timerPill">Time: <span id="timeLeft">25</span>s</div>
+        <button id="start" class="btn secondary">Start Timer</button>
+        <button id="force" class="btn secondary" title="If things get weird, click me">Force Re-init</button>
+      </div>
+
+      <div id="answer" class="answer"></div>
+      <div id="err" class="err"></div>
+      <div class="version">Treasure Hunt v2.6 • Distractors + vectors + normalized cosine</div>
+    </div>
+  </div>
+
+<script type="text/javascript">
+(function(){
+  function log(msg){ var e=document.getElementById("err"); if(e){ e.textContent=String(msg); } console.log("[TH]", msg); }
+
+  try{
+    var DATA = [
+      {
+        textTokens: "In the valley town of Riverbend, a small library started a weekend program for kids. Volunteers read stories, then guide short hands-on projects like making paper bridges or tiny weather stations. The program begins at nine every Saturday in the spring.".split(" "),
+        answerTokens: ["riverbend"],
+        question: "What is the name of the town?",
+        explanation: "The name appears near the beginning: valley town of <b class='highlight'>Riverbend</b>."
+      },
+      {
+        textTokens: "Nadia trained for the city bike race by timing herself on a four-mile loop. On windy days she went slower, so she rode early when the air was calm. Her best practice time was fourteen minutes and thirty seconds.".split(" "),
+        answerTokens: ["fourteen","minutes","and","thirty","seconds"],
+        question: "What was Nadia's best practice time?",
+        explanation: "The last sentence states: best practice time was <b class='highlight'>fourteen minutes and thirty seconds</b>."
+      },
+      {
+        textTokens: "During a field trip to the bay, students measured how salty the water was using a simple tool. They took samples near the pier in the morning and again after lunch. The second reading showed lower salt levels because rain diluted the water.".split(" "),
+        answerTokens: ["after","lunch"],
+        question: "When did they take the second water sample?",
+        explanation: "It says: samples near the pier in the morning and again <b class='highlight'>after lunch</b>."
+      }
+    ];
+
+    function norm(s){ return (s||"").toLowerCase().replace(/^[^a-z0-9]+|[^a-z0-9]+$/g,""); }
+    function findAnswerSpan(tokens, answerTokens){
+      var t=tokens.map(norm), a=(answerTokens||[]).map(norm);
+      for(var i=0;i<=t.length-a.length;i++){
+        var ok=true; for(var j=0;j<a.length;j++){ if(t[i+j]!==a[j]){ ok=false; break; } }
+        if(ok) return [i,i+a.length-1];
+      }
+      return [-1,-1];
+    }
+    function softmax(arr){ var m=Math.max.apply(null,arr), exps=arr.map(function(v){return Math.exp(v-m)}), s=exps.reduce(function(a,b){return a+b},0); return exps.map(function(e){return e/s}); }
+    function $(id){ return document.getElementById(id); }
+
+    // --- State ---
+    var idx=0, levels=[], budget=12, score=0, timerId=null, timeLeft=25, revealedOnce=false, THRESHOLD=0.85, answerSpan=[-1,-1], distractorIdxs=[];
+    var passageEl, meterFill, vecUserEl, vecIdealEl;
+
+    function chooseDistractors(tokens, span, count){
+      var stop="the a an and or to of in on at by for from with as was is are be been being it they them she he her his their our your you we i then so because if when again".split(" ");
+      var cand=[]; for(var i=0;i<tokens.length;i++){ if(i>=span[0]&&i<=span[1]) continue; var t=norm(tokens[i]); if(!t) continue; if(stop.indexOf(t)>-1) continue; if(t.length<3) continue; cand.push(i); }
+      for(var j=cand.length-1;j>0;j--){ var k=Math.floor(Math.random()*(j+1)), tmp=cand[j]; cand[j]=cand[k]; cand[k]=tmp; }
+      return cand.slice(0,Math.min(count,cand.length));
+    }
+
+    function renderVectors(userProb, idealProb){
+      vecUserEl.innerHTML=""; vecIdealEl.innerHTML="";
+      for(var i=0;i<userProb.length;i++){
+        var cu=document.createElement("div"); cu.className="cell user"; cu.style.opacity=Math.min(1,userProb[i]*4).toFixed(3); vecUserEl.appendChild(cu);
+        var ci=document.createElement("div"); ci.className="cell ideal"; ci.style.opacity=Math.min(1,idealProb[i]*4).toFixed(3); vecIdealEl.appendChild(ci);
+      }
+    }
+
+    function levelToWeight(lvl){ return lvl===2?1.0:(lvl===1?0.5:0.0); }
+
+    function computeSignalAndVectors(){
+      var n=levels.length, start=answerSpan[0], end=answerSpan[1], rawUser=new Array(n), ideal=new Array(n).fill(0);
+      for(var i=0;i<n;i++) rawUser[i]=levelToWeight(levels[i]);
+      for(var k=start;k<=end;k++) ideal[k]=1;
+      var userProb=softmax(rawUser), spanLen=(end>=start)?(end-start+1):1, idealProb=ideal.map(function(v){return v>0?1/spanLen:0});
+      var dot=0, nu=0, ni=0; for(var j=0;j<n;j++){ dot+=userProb[j]*idealProb[j]; nu+=userProb[j]*userProb[j]; ni+=idealProb[j]*idealProb[j]; }
+      var cos=(nu===0||ni===0)?0:(dot/Math.sqrt(nu*ni)); if(cos<0) cos=0; if(cos>1) cos=1;
+      return {score:cos,userProb:userProb,idealProb:idealProb};
+    }
+
+    function updateMeterAndVectors(){
+      var res=computeSignalAndVectors(), pct=Math.round(res.score*100);
+      meterFill.style.width=pct+"%";
+      var lab=meterFill.parentElement.querySelector("label"); if(lab) lab.textContent="Signal Strength (normalized cosine) — "+pct+"%";
+      renderVectors(res.userProb,res.idealProb);
+    }
+
+    function cycle(i,el){
+      var curr=levels[i], next=(curr+1)%3, delta=0;
+      if(curr===0&&next===1) delta=1; else if(curr===1&&next===2) delta=1; else if(curr===2&&next===0) delta=-2;
+      if(budget-Math.max(delta,0)<0) return;
+      levels[i]=next; el.setAttribute("data-att",String(next));
+      budget-=Math.max(delta,0); budget+=Math.max(-delta,0);
+      $("pts").textContent=budget; updateMeterAndVectors();
+    }
+
+    function render(){
+      var d=DATA[idx];
+      $("question").textContent=d.question||"(no question)";
+      passageEl=$("passage"); meterFill=$("meterFill"); vecUserEl=$("vecUser"); vecIdealEl=$("vecIdeal");
+      passageEl.innerHTML=""; levels=new Array(d.textTokens.length).fill(0); budget=12; $("pts").textContent=budget; $("answer").innerHTML=""; revealedOnce=false;
+      answerSpan=findAnswerSpan(d.textTokens,d.answerTokens); distractorIdxs=chooseDistractors(d.textTokens,answerSpan,3);
+
+      for(var i=0;i<d.textTokens.length;i++){
+        var tok=d.textTokens[i], s=document.createElement("span");
+        s.className="token"; s.innerHTML="<span class='idx'>"+i+"</span>"+tok; s.setAttribute("data-att","0");
+        (function(ii,el){ el.addEventListener("click",function(){ cycle(ii,el); }); })(i,s);
+        passageEl.appendChild(s);
+      }
+      updateMeterAndVectors();
+      var dwords=distractorIdxs.map(function(i){return d.textTokens[i]}); log("render OK — idx="+idx+" span="+JSON.stringify(answerSpan)+" distractors="+JSON.stringify(dwords));
+    }
+
+    function reveal(auto){
+      if(auto===void 0) auto=false;
+      var start=answerSpan[0], end=answerSpan[1], kids=Array.prototype.slice.call(passageEl.children);
+      if(start<0){ $("answer").textContent="Answer not found in passage."; return; }
+      for(var i=start;i<=end;i++) kids[i].classList.add("highlight");
+      for(var j=0;j<distractorIdxs.length;j++){ kids[distractorIdxs[j]].classList.add("distractor","pulse"); }
+      var res=computeSignalAndVectors(), congrats=res.score>=THRESHOLD;
+      var msg=congrats?"🎉 Congrats! Your focus matched the model's attention.":(auto?"Time! Here is where the answer was.":"Careful—distractors can pull attention. Check the highlighted span.");
+      $("answer").innerHTML=msg+"<br>"+(DATA[idx].explanation||"");
+      score+=Math.round(res.score*120); $("score").textContent=score; revealedOnce=true;
+    }
+
+    function autoAttend(){
+      var d=DATA[idx]; levels=levels.map(function(){return 0}); budget=12; var scores=d.textTokens.map(function(){return 0});
+      for(var i=answerSpan[0]; i<=answerSpan[1]; i++){ if(i>=0) scores[i]+=3.0; }
+      for(var k=0;k<distractorIdxs.length;k++) scores[distractorIdxs[k]]-=1.0;
+      for(var i2=0;i2<d.textTokens.length;i2++){ if(/^[A-Z]/.test(d.textTokens[i2])) scores[i2]+=0.2; }
+      var probs=softmax(scores), order=probs.map(function(p,i){return {p:p,i:i}}).sort(function(a,b){return b.p-a.p}).map(function(o){return o.i});
+      for(var t=0;t<order.length;t++){ var ix=order[t]; if(budget<=0) break; if(budget>=2){levels[ix]=2; budget-=2;} else if(budget>=1){levels[ix]=1; budget-=1;} }
+      Array.prototype.slice.call(passageEl.children).forEach(function(el,i){ el.setAttribute("data-att",String(levels[i])); });
+      $("pts").textContent=budget; updateMeterAndVectors();
+    }
+
+    function tick(){ if(timeLeft<=0){ stopTimer(); if(!revealedOnce) reveal(true); return; } timeLeft-=1; $("timeLeft").textContent=timeLeft; }
+    function startTimer(){ stopTimer(); timeLeft=25; $("timeLeft").textContent=timeLeft; timerId=setInterval(tick,1000); }
+    function stopTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
+
+    function wireEvents(){
+      $("auto").addEventListener("click",autoAttend);
+      $("reveal").addEventListener("click",function(){reveal(false);});
+      $("next").addEventListener("click",function(){ idx=(idx+1)%DATA.length; stopTimer(); $("timeLeft").textContent=25; render(); });
+      $("start").addEventListener("click",startTimer);
+      $("debugToggle").addEventListener("change",function(e){ document.body.classList.toggle("debug", e.target.checked); });
+      $("force").addEventListener("click",render);
+    }
+
+    document.addEventListener("DOMContentLoaded",function(){ wireEvents(); render(); });
+    setTimeout(function(){ if(/Loading/.test(document.getElementById("question").textContent)){ render(); log("auto re-render"); } }, 500);
+
+  }catch(e){
+    log("boot error: "+e.message);
+  }
+})();
+</script>
+</body>
+</html>
