@@ -100,6 +100,35 @@
   </style>
 </head>
 <body data-theme="dark">
+  <!-- Back to Arcade -->
+<a id="arcade-link" href="arcade-launcher.html" aria-label="Back to Arcade">← Arcade</a>
+<style>
+  /* Scoped styles so we don't collide with your page CSS */
+  #arcade-link{
+    position: fixed; top:16px; left:16px; z-index: 9999;
+    padding: 8px 12px; border-radius: 999px;
+    background: linear-gradient(90deg, #ff2bd7, #00eaff);
+    color: #0a0a12; font: 800 13px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    text-decoration: none; letter-spacing: .3px; text-transform: uppercase;
+    box-shadow: 0 10px 24px rgba(255,43,215,.25), 0 8px 20px rgba(0,234,255,.18);
+    border: 0;
+  }
+  #arcade-link:hover { transform: translateY(-1px); }
+  #arcade-link:focus { outline: 2px solid #00eaff; outline-offset: 2px; border-radius: 999px; }
+  @media (max-width: 600px){
+    #arcade-link{ top:10px; left:10px; padding:6px 10px; font-size:12px; }
+  }
+</style>
+<script>
+  // Shortcut: ⌘/Ctrl + L to jump back to the Arcade
+  document.addEventListener('keydown', function(e){
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
+    if ((isMac ? e.metaKey : e.ctrlKey) && (e.key === 'l' || e.key === 'L')) {
+      e.preventDefault();
+      window.location.href = 'arcade-launcher.html';
+    }
+  });
+</script>
   <div class="app">
     <div class="chrome">
       <div class="brand"><div class="logo"></div> WordSpace</div>
