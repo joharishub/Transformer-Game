@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Transformer Times — Arcade</title>
+<meta name="description" content="A tiny arcade of AI teaching games: Token Predictor, Attention Treasure Hunt, and Word Clone.">
+<style>
+  :root{
+    --bg:#0a0a12; --card:#0f0f1a; --border:#24243b; --text:#e9ecf3; --muted:#a3a6bb;
+    --cyn:#00eaff; --mag:#ff2bd7; --good:#00d68f;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    color:var(--text);
+    background:
+      radial-gradient(70vw 70vh at 70% -10%, #171735 0, var(--bg) 60%),
+      linear-gradient(180deg, #0a0a12, #0a0a12);
+  }
+  .wrap{max-width:1100px; margin:28px auto 80px; padding:16px}
+  .masthead{
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    text-align:center; font-weight:700;
+    font-size: clamp(28px,6vw,56px); line-height:1.05; letter-spacing:.2px;
+    color: var(--cyn);
+    text-shadow: 0 0 10px rgba(0,234,255,.6), 0 0 26px rgba(0,234,255,.35);
+    margin: 0 0 6px;
+  }
+  h1{
+    margin: 0 0 12px;
+    text-align:center;
+    color: var(--mag);
+    font-size: clamp(18px,3.2vw,28px);
+    text-shadow: 0 0 10px rgba(255,43,215,.6), 0 0 26px rgba(255,43,215,.35);
+  }
+  .sub{ text-align:center; color:var(--muted); margin-bottom:18px }
+  .grid{
+    display:grid;
+    grid-template-columns: repeat( auto-fit, minmax(260px, 1fr) );
+    gap: 18px;
+  }
+  .card{
+    background: linear-gradient(180deg, rgba(17,17,30,.92), rgba(10,10,18,.96));
+    border:1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 18px 48px rgba(0,0,0,.55), 0 0 26px rgba(0,234,255,.06);
+    padding: 16px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .tag{ display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#bfefff }
+  .dot{ width:10px; height:10px; border-radius:50%; background: var(--cyn); display:inline-block }
+  .title{ font-weight:800; font-size:18px; color:#fff }
+  .desc{ color: var(--muted); font-size:14px; line-height:1.4 }
+  .btnrow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:auto }
+  .btn{
+    background: linear-gradient(90deg, var(--mag), var(--cyn));
+    color:#0a0a12; border:0; padding:10px 14px; border-radius:10px;
+    font-weight:800; cursor:pointer; text-decoration:none;
+    text-transform:uppercase; letter-spacing:.3px;
+    box-shadow: 0 10px 30px rgba(255,43,215,.25), 0 8px 24px rgba(0,234,255,.18);
+  }
+  .btn.ghost{
+    background:#13132a; color:#e9ecf3; border:1px solid var(--border);
+    text-transform:none; letter-spacing:0;
+  }
+  footer{ margin-top:28px; color:var(--muted); text-align:center; font-size:12px }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="masthead">The Transformer Times</div>
+    <h1>Arcade</h1>
+    <p class="sub">Pick a mini‑game to learn how AI models “pay attention” and predict words.</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="tag"><span class="dot"></span> Teaching Game</div>
+        <div class="title">Token Predictor</div>
+        <div class="desc">A simple, offline simulator of how a language model picks the next word based on temperature and randomness.</div>
+        <div class="btnrow">
+          <a class="btn" href="index.html">Launch</a>
+          <a class="btn ghost" href="index.html" target="_blank" rel="noopener">Open in new tab</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="tag"><span class="dot"></span> Teaching Game</div>
+        <div class="title">Attention Treasure Hunt</div>
+        <div class="desc">Give attention to the right words, dodge distractors, and watch your signal strength climb (normalized cosine).</div>
+        <div class="btnrow">
+          <a class="btn" href="attention-treasure-hunt.html">Launch</a>
+          <a class="btn ghost" href="attention-treasure-hunt.html" target="_blank" rel="noopener">Open in new tab</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="tag"><span class="dot"></span> Word Game</div>
+        <div class="title">Word Clone</div>
+        <div class="desc">A classic daily word puzzle. Great for vocab and pattern spotting. (Update the filename if yours is different.)</div>
+        <div class="btnrow">
+          <a class="btn" href="word-clone.html">Launch</a>
+          <a class="btn ghost" href="word-clone.html" target="_blank" rel="noopener">Open in new tab</a>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Tip: if a link 404s, double‑check the filename in your repo (e.g., <code>attention-treasure-hunt.html</code>).
+    </footer>
+  </div>
+</body>
+</html>
