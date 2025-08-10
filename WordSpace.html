@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WordSpace — Self‑Contained Editor</title>
+  <style>
+    /* =============
+       WordSpace — Cyberpunk Theme
+       ============= */
+    :root{
+      --bg: #05060a;
+      --panel: #0a0d14;
+      --muted: #7b8aa9;
+      --text: #eaf2ff;
+      --accent: #9f3bff;     /* neon purple */
+      --accent-2: #00ffd1;   /* neon cyan */
+      --danger: #ff3b6e;
+      --shadow: 0 14px 40px rgba(0,0,0,.55);
+      --radius: 16px;
+    }
+    [data-theme="light"]{
+      --bg:#0b0d16; --panel:#111426; --muted:#9fb0d0; --text:#f2f6ff; --accent:#8a61ff; --accent-2:#00f2c3; --danger:#ff507a;
+    }
+    html,body{height:100%;}
+    body{
+      margin:0; background:
+        radial-gradient(1200px 800px at 10% 10%, rgba(159,59,255,.08), transparent 60%),
+        radial-gradient(1200px 800px at 90% 20%, rgba(0,255,209,.07), transparent 60%),
+        linear-gradient(180deg, #06070c 0%, #05060a 100%);
+      color:var(--text); font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; position:relative; isolation:isolate;
+    }
+    body::before{
+      content:""; position:fixed; inset:0; pointer-events:none; z-index:-1;
+      background:
+        repeating-linear-gradient(0deg, rgba(159,59,255,.05) 0 1px, transparent 1px 32px),
+        repeating-linear-gradient(90deg, rgba(0,255,209,.04) 0 1px, transparent 1px 32px);
+      animation: gridPan 24s linear infinite;
+    }
+    @keyframes gridPan{to{transform: translate3d(-32px,-32px,0);}}
+
+    .app{display:flex; flex-direction:column; height:100%; gap:12px; padding:16px; box-sizing:border-box;}
+    .chrome{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      background: linear-gradient(180deg, rgba(10,13,20,.9), rgba(10,13,20,.7)); border-radius:var(--radius);
+      padding:10px 12px; box-shadow:var(--shadow); position:sticky; top:16px; z-index: 50; backdrop-filter: blur(10px);
+    }
+    .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px}
+    .brand .logo{width:24px; height:24px; border-radius:7px; background: conic-gradient(from 210deg, var(--accent), var(--accent-2), var(--accent), #1a1d29 330deg); box-shadow: 0 0 0 2px rgba(255,255,255,.06), 0 0 24px rgba(159,59,255,.35), inset 0 0 18px rgba(0,255,209,.15); animation: neonPulse 3.5s ease-in-out infinite}
+    @keyframes neonPulse{ 0%,100%{filter: drop-shadow(0 0 0 rgba(159,59,255,.0))} 50%{filter: drop-shadow(0 0 10px rgba(0,255,209,.35));} }
+
+    .filebar{display:flex; gap:8px}
+    .toolbar{display:flex; align-items:center; gap:8px; background: linear-gradient(180deg, rgba(10,13,20,.9), rgba(10,13,20,.7)); border-radius:var(--radius); padding:8px 10px; box-shadow:var(--shadow); backdrop-filter: blur(10px);}
+    .group{display:flex; align-items:center; gap:6px; padding-right:8px; margin-right:8px; border-right:1px solid rgba(138,97,255,.22)}
+    .group:last-child{border-right:none; padding-right:0; margin-right:0}
+
+    button, .select, input[type="color"]{
+      appearance:none; border:none; outline:none; background:transparent; color:var(--text);
+      border-radius:12px; padding:7px 10px; cursor:pointer; transition:.15s ease; box-shadow: inset 0 0 0 1px rgba(159,59,255,.35), 0 0 0 transparent;
+    }
+    button.icon{padding:7px; min-width:36px; height:36px; display:grid; place-items:center}
+    button:disabled{opacity:.5; cursor:not-allowed}
+    button:hover, .select:hover, input[type="color"]:hover{box-shadow: inset 0 0 0 1px var(--accent), 0 0 18px rgba(159,59,255,.25)}
+    button.active{box-shadow: inset 0 0 0 2px var(--accent), 0 0 18px rgba(0,255,209,.3)}
+
+    .select{display:flex; align-items:center; gap:8px; height:36px}
+    .select select{background:transparent; border:none; color:inherit; font:inherit; outline:none; cursor:pointer}
+
+    .meta{display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px}
+    .status-dot{width:8px; height:8px; border-radius:50%; background:var(--accent-2); box-shadow:0 0 12px rgba(0,255,209,.6)}
+
+    .paper-wrap{flex:1; min-height:0; display:grid; justify-content:center; overflow:auto; padding-bottom:32px}
+    .paper{
+      width: 210mm; min-height: 297mm; background: #0f121a; color:#eaf2ff; box-shadow: 0 10px 40px rgba(0,0,0,.6), 0 0 0 1px rgba(159,59,255,.15);
+      border-radius:18px; padding: 24mm 20mm; box-sizing: border-box; outline:none; caret-color:#fff;
+    }
+    .paper[contenteditable="true"]:empty:before{content: attr(data-placeholder); color:#8b96b6}
+    .paper a{color:#5cc0ff}
+    .paper img{max-width:100%; border-radius:8px}
+    .paper table{border-collapse:collapse; width:100%}
+    .paper td,.paper th{border:1px solid rgba(159,59,255,.35); padding:6px; background: rgba(10,13,20,.35)}
+
+    .footer{display:flex; align-items:center; justify-content:space-between; font-size:12px; color:#93a3c9}
+    .counter{display:flex; gap:12px}
+
+    dialog{border:none; border-radius:16px; padding:0; overflow:hidden; box-shadow: var(--shadow);}
+    .modal{background:var(--panel); color:var(--text); padding:16px; min-width:360px}
+    .modal h3{margin:0 0 8px 0}
+    .modal .row{margin-top:8px}
+
+    ::selection{background: rgba(159,59,255,.45); color:#fff}
+
+    @media print{
+      body{background:#fff}
+      .chrome, .toolbar, .footer{display:none}
+      .paper-wrap{padding:0}
+      .paper{box-shadow:none; border-radius:0; width:auto; min-height:unset; padding:0; background:#fff; color:#111}
+    }
+  </style>
+</head>
+<body data-theme="dark">
+  <div class="app">
+    <div class="chrome">
+      <div class="brand"><div class="logo"></div> WordSpace</div>
+      <div class="filebar">
+        <button class="icon" title="New (Ctrl/Cmd+N)" id="btnNew">🧾</button>
+        <button class="icon" title="Open…" id="btnOpen">📂</button>
+        <button class="icon" title="Save as .doc (HTML) (Ctrl/Cmd+S)" id="btnSave">💾</button>
+        <button class="icon" title="Print / Export to PDF (Ctrl/Cmd+P)" id="btnPrint">🖨️</button>
+        <button class="icon" title="Toggle theme" id="btnTheme">🌓</button>
+        <input type="file" id="fileOpen" accept=".doc,.html,.htm,.txt,.md" hidden>
+      </div>
+    </div>
+
+    <div class="toolbar" role="toolbar" aria-label="Editing toolbar">
+      <div class="group">
+        <button class="icon" data-cmd="undo" title="Undo (Ctrl/Cmd+Z)">↶</button>
+        <button class="icon" data-cmd="redo" title="Redo (Ctrl/Cmd+Y)">↷</button>
+        <button class="icon" id="btnClear" title="Remove formatting">🧹</button>
+      </div>
+      <div class="group">
+        <div class="select" title="Font">
+          <span>🅵</span>
+          <select id="fontName">
+            <option>Arial</option>
+            <option>Georgia</option>
+            <option>Times New Roman</option>
+            <option>Tahoma</option>
+            <option>Verdana</option>
+            <option>Courier New</option>
+            <option>Inter</option>
+            <option>Calibri</option>
+          </select>
+        </div>
+        <div class="select" title="Size">
+          <span>🔠</span>
+          <select id="fontSize">
+            <option value="2">Normal</option>
+            <option value="3" selected>+</option>
+            <option value="4">H4</option>
+            <option value="5">H3</option>
+            <option value="6">H2</option>
+            <option value="7">H1</option>
+          </select>
+        </div>
+        <div class="select" title="Block">
+          <span>¶</span>
+          <select id="formatBlock">
+            <option value="p" selected>Paragraph</option>
+            <option value="h1">Heading 1</option>
+            <option value="h2">Heading 2</option>
+            <option value="h3">Heading 3</option>
+            <option value="blockquote">Blockquote</option>
+            <option value="pre">Code</option>
+          </select>
+        </div>
+      </div>
+      <div class="group">
+        <button class="icon" data-cmd="bold" title="Bold (Ctrl/Cmd+B)"><b>B</b></button>
+        <button class="icon" data-cmd="italic" title="Italic (Ctrl/Cmd+I)"><i>I</i></button>
+        <button class="icon" data-cmd="underline" title="Underline (Ctrl/Cmd+U)"><u>U</u></button>
+        <button class="icon" data-cmd="strikeThrough" title="Strikethrough">S̶</button>
+        <button class="icon" data-cmd="superscript" title="Superscript">x⁺</button>
+        <button class="icon" data-cmd="subscript" title="Subscript">x₋</button>
+        <label class="select" title="Text color">🎨 <input type="color" id="foreColor"/></label>
+        <label class="select" title="Highlight">🖍️ <input type="color" id="backColor"/></label>
+      </div>
+      <div class="group">
+        <button class="icon" data-cmd="justifyLeft" title="Align left">⟸</button>
+        <button class="icon" data-cmd="justifyCenter" title="Center">⇔</button>
+        <button class="icon" data-cmd="justifyRight" title="Align right">⟹</button>
+        <button class="icon" data-cmd="justifyFull" title="Justify">≋</button>
+      </div>
+      <div class="group">
+        <button class="icon" data-cmd="insertUnorderedList" title="Bulleted list">•⋅</button>
+        <button class="icon" data-cmd="insertOrderedList" title="Numbered list">1⋅</button>
+        <button class="icon" data-cmd="outdent" title="Outdent">⇤</button>
+        <button class="icon" data-cmd="indent" title="Indent">⇥</button>
+      </div>
+      <div class="group">
+        <button class="icon" id="btnLink" title="Insert link">🔗</button>
+        <button class="icon" id="btnImage" title="Insert image">🖼️</button>
+        <button class="icon" id="btnTable" title="Insert table">🔳</button>
+        <input type="file" id="imageFile" accept="image/*" hidden>
+      </div>
+      <div class="group">
+        <button class="icon" id="btnFind" title="Find / Replace (Ctrl/Cmd+F)">🔎</button>
+      </div>
+    </div>
+
+    <div class="paper-wrap">
+      <div id="editor" class="paper" contenteditable="true" spellcheck="true" data-placeholder="Start typing…"></div>
+    </div>
+
+    <div class="footer">
+      <div class="meta"><span class="status-dot" id="statusDot"></span> Autosaves locally</div>
+      <div class="counter" id="counter"></div>
+    </div>
+  </div>
+
+  <dialog id="findModal">
+    <form method="dialog" class="modal">
+      <h3>Find & Replace</h3>
+      <div class="row">
+        <input id="findInput" placeholder="Find" style="flex:1; padding:8px; border-radius:10px; border:none; box-shadow: inset 0 0 0 1px rgba(128,128,128,.22)"/>
+      </div>
+      <div class="row">
+        <input id="replaceInput" placeholder="Replace with" style="flex:1; padding:8px; border-radius:10px; border:none; box-shadow: inset 0 0 0 1px rgba(128,128,128,.22)"/>
+      </div>
+      <div class="row" style="justify-content: flex-end">
+        <button value="cancel">Close</button>
+        <button id="btnFindNext" value="default">Find next</button>
+        <button id="btnReplace">Replace</button>
+        <button id="btnReplaceAll">Replace all</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    function run(cmd, value = null){
+      document.execCommand(cmd, false, value);
+      editor.focus();
+      updateCounts();
+      markDirty();
+    }
+
+    const editor = document.getElementById('editor');
+    const counter = document.getElementById('counter');
+    const statusDot = document.getElementById('statusDot');
+    const findModal = document.getElementById('findModal');
+    const findInput = document.getElementById('findInput');
+    const replaceInput = document.getElementById('replaceInput');
+
+    document.querySelectorAll('[data-cmd]').forEach(btn=>{ btn.addEventListener('click',()=> run(btn.dataset.cmd)); });
+    document.getElementById('btnClear').addEventListener('click',()=> run('removeFormat'));
+
+    document.getElementById('fontName').addEventListener('change', e=> run('fontName', e.target.value));
+    document.getElementById('fontSize').addEventListener('change', e=> run('fontSize', e.target.value));
+    document.getElementById('formatBlock').addEventListener('change', e=> run('formatBlock', e.target.value));
+
+    document.getElementById('foreColor').addEventListener('input', e=> run('foreColor', e.target.value));
+    document.getElementById('backColor').addEventListener('input', e=> run('hiliteColor', e.target.value));
+
+    document.getElementById('btnLink').addEventListener('click',()=>{
+      const url = prompt('Enter URL (leave empty to remove link):');
+      if(url===null) return;
+      if(url.trim()==='') run('unlink'); else run('createLink', url);
+    });
+
+    const imageFile = document.getElementById('imageFile');
+    document.getElementById('btnImage').addEventListener('click',()=>{
+      const choice = confirm('OK: insert from file\nCancel: insert from URL');
+      if(choice) imageFile.click(); else {
+        const url = prompt('Image URL');
+        if(url) run('insertImage', url);
+      }
+    });
+    imageFile.addEventListener('change', e=>{
+      const file = e.target.files[0]; if(!file) return;
+      const reader = new FileReader(); reader.onload = () => run('insertImage', reader.result); reader.readAsDataURL(file); e.target.value = '';
+    });
+
+    document.getElementById('btnTable').addEventListener('click',()=>{
+      const rc = prompt('Rows x Cols (e.g., 3x4)');
+      if(!rc) return;
+      const m = rc.toLowerCase().replace('×','x').match(/(\d+)x(\d+)/);
+      if(!m) return alert('Use the format 3x4');
+      const rows = +m[1], cols = +m[2];
+      let html = '<table>'; for(let r=0;r<rows;r++){ html+='<tr>'; for(let c=0;c<cols;c++){ html+='<td> </td>'; } html+='</tr>'; } html+='</table>';
+      run('insertHTML', html);
+    });
+
+    editor.addEventListener('dragover', e=>{ e.preventDefault(); });
+    editor.addEventListener('drop', e=>{
+      e.preventDefault();
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if(file && file.type.startsWith('image/')){
+        const reader = new FileReader(); reader.onload=()=> run('insertImage', reader.result); reader.readAsDataURL(file);
+      } else {
+        const text = e.dataTransfer.getData('text/plain'); if(text) run('insertText', text);
+      }
+    });
+
+    function openFind(){ findModal.showModal(); setTimeout(()=>findInput.focus(), 50); }
+    document.getElementById('btnFind').addEventListener('click', openFind);
+    document.getElementById('btnFindNext').addEventListener('click', (e)=>{
+      e.preventDefault();
+      const q = findInput.value; if(!q) return;
+      const r = window.find(q, false, false, true, false, false, false);
+      if(!r) alert('No more matches');
+    });
+    document.getElementById('btnReplace').addEventListener('click', (e)=>{
+      e.preventDefault();
+      const sel = window.getSelection();
+      if(sel && !sel.isCollapsed){ document.execCommand('insertText', false, replaceInput.value); }
+      document.getElementById('btnFindNext').click();
+    });
+    document.getElementById('btnReplaceAll').addEventListener('click', (e)=>{
+      e.preventDefault();
+      const q = findInput.value; if(!q) return;
+      const repl = replaceInput.value;
+      const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null);
+      const toChange = [];
+      while(walker.nextNode()){
+        const node = walker.currentNode;
+        if(node.nodeValue.includes(q)) toChange.push(node);
+      }
+      toChange.forEach(n=> n.nodeValue = n.nodeValue.split(q).join(repl));
+      markDirty(); updateCounts();
+      alert('Replaced '+toChange.length+' node(s).');
+    });
+
+    function updateCounts(){
+      const text = editor.innerText || '';
+      const words = (text.trim().match(/\S+/g) || []).length;
+      const chars = text.replace(/\s/g,'').length;
+      const readingMin = Math.max(1, Math.round(words/200));
+      counter.textContent = words+' words  ·  '+chars+' chars  ·  ~'+readingMin+' min read';
+    }
+
+    const KEY = 'wordspace.v1.document';
+    let dirty = false; let saveTimer;
+    function markDirty(){ dirty = true; statusDot.style.background = 'var(--accent)'; }
+    function autosave(){ localStorage.setItem(KEY, editor.innerHTML); dirty = false; statusDot.style.background = 'var(--accent-2)'; }
+    editor.addEventListener('input', ()=>{ markDirty(); clearTimeout(saveTimer); saveTimer = setTimeout(autosave, 700); updateCounts(); });
+    window.addEventListener('beforeunload', (e)=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
+    (function load(){ const html = localStorage.getItem(KEY); if(html){ editor.innerHTML = html; } updateCounts(); })();
+
+    document.getElementById('btnNew').addEventListener('click', ()=>{
+      if(dirty && !confirm('Discard unsaved changes?')) return;
+      editor.innerHTML = ''; autosave(); updateCounts();
+    });
+    const fileOpen = document.getElementById('fileOpen');
+    document.getElementById('btnOpen').addEventListener('click', ()=> fileOpen.click());
+    fileOpen.addEventListener('change', e=>{
+      const file = e.target.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        let text = reader.result;
+        if(file.name.endsWith('.txt') || file.name.endsWith('.md')){ text = text.replace(/\n/g,'<br>'); }
+        editor.innerHTML = text; autosave(); updateCounts();
+      };
+      reader.readAsText(file); fileOpen.value = '';
+    });
+
+    function download(filename, mime, content){
+      const blob = new Blob([content], {type: mime});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+    }
+    document.getElementById('btnSave').addEventListener('click', ()=>{
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>WordSpace Doc</title></head><body>${editor.innerHTML}</body></html>`;
+      download('document.doc', 'application/msword', html);
+    });
+    document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
+
+    document.addEventListener('keydown', (e)=>{
+      const mod = e.metaKey || e.ctrlKey;
+      if(mod && e.key.toLowerCase()==='s'){ e.preventDefault(); document.getElementById('btnSave').click(); }
+      if(mod && e.key.toLowerCase()==='n'){ e.preventDefault(); document.getElementById('btnNew').click(); }
+      if(mod && e.key.toLowerCase()==='f'){ e.preventDefault(); openFind(); }
+    });
+
+    const btnTheme = document.getElementById('btnTheme');
+    btnTheme.addEventListener('click', ()=>{
+      const isDark = document.body.getAttribute('data-theme')==='dark';
+      document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    });
+
+    editor.addEventListener('paste', (e)=>{
+      const html = e.clipboardData && e.clipboardData.getData('text/html');
+      if(html){
+        e.preventDefault();
+        const tmp = document.createElement('div'); tmp.innerHTML = html;
+        tmp.querySelectorAll('[style]').forEach(el=> el.removeAttribute('style'));
+        tmp.querySelectorAll('[class]').forEach(el=> el.removeAttribute('class'));
+        document.execCommand('insertHTML', false, tmp.innerHTML);
+      }
+    });
+  </script>
+</body>
+</html>
